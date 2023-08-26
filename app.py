@@ -43,8 +43,8 @@ if st.button('Download Data'):
     x_train = []
     y_train = []
 
-    for i in range(60, len(train_data)):
-        x_train.append(train_data[i-60:i, 0])
+    for i in range(100, len(train_data)):
+        x_train.append(train_data[i-100:i, 0])
         y_train.append(train_data[i, 0])
 
     x_train, y_train = np.array(x_train), np.array(y_train)
@@ -52,16 +52,16 @@ if st.button('Download Data'):
 
     # Build and Train LSTM Model
     model = build_lstm_model((x_train.shape[1], 1))
-    model.fit(x_train, y_train, batch_size=1, epochs=1)
+    model.fit(x_train, y_train, batch_size=5, epochs=50)
 
     # Create Test Data
-    test_data = scaled_data[training_data_len - 60:, :]
+    test_data = scaled_data[training_data_len - 100:, :]
 
     x_test = []
     y_test = data['Close'][training_data_len:].values
 
-    for i in range(60, len(test_data)):
-        x_test.append(test_data[i-60:i, 0])
+    for i in range(100, len(test_data)):
+        x_test.append(test_data[i-100:i, 0])
 
     x_test = np.array(x_test)
     x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
@@ -69,6 +69,16 @@ if st.button('Download Data'):
     # Predictions
     predictions = model.predict(x_test)
     predictions = scaler.inverse_transform(predictions)
+
+    # Evaluation
+    st.write("### RMSE :")
+    rmse = np.sqrt(np.mean(((predictions- y_test)**2)))
+    rmse
+
+    st.write("### MAPE :")
+    errors = np.abs(predictions - y_test)
+    mape = np.mean(errors / y_test) * 100
+    mape
 
     # Plot the Results
     train = data[:training_data_len]
@@ -82,6 +92,8 @@ if st.button('Download Data'):
     plt.ylabel('Close Price Rupiah (Rp)')
     plt.plot(train['Close'])
     plt.plot(valid[['Close', 'Predictions']])
-    plt.legend(['Train', 'Val', 'Predictions'], loc='lower right')
+    plt.legend(['Train', 'Val', 'Predictions'], loc='upper right')
     st.pyplot(plt)
 
+    valid[['Close', 'Predictions']]
+ 
